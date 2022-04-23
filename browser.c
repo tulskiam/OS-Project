@@ -1,3 +1,16 @@
+/*
+ ***************************************************************************
+ * Clarkson University                                                     *
+ * CS 444/544: Operating Systems, Spring 2022                              *
+ * Project: Prototyping a Web Server/Browser                               *
+ * Created by Daqing Hou, dhou@clarkson.edu                                *
+ *            Xinchao Song, xisong@clarkson.edu                            *
+ * March 30, 2022                                                          *
+ * Copyright © 2022 CS 444/544 Instructor Team. All rights reserved.       *
+ * Unauthorized use is strictly prohibited.                                *
+ ***************************************************************************
+ */
+
 #include "net_util.h"
 
 #include <stdio.h>
@@ -67,7 +80,27 @@ void read_user_input(char message[]) {
 void load_cookie() {
     // TODO: For Part 1.2, write your file operation code here.
     // Hint: The file path of the cookie is stored in COOKIE_PATH.
-    session_id = -1; // You may move this line to anywhere inside this fucntion.
+    printf("in load cookie");
+    FILE * fileSession;
+    fileSession = fopen(COOKIE_PATH, "r");
+
+    if(fileSession == NULL) {
+        session_id = -1;
+    }
+    else {
+        getc(fileSession); // remove space
+
+        int ret = fscanf(fileSession, "%d", &session_id);
+
+        if(ret == EOF) { 
+            session_id = -1; 
+        }
+        else {
+            fscanf(fileSession, "%d", &session_id);
+        }
+
+        fclose(fileSession);
+    }
 }
 
 /**
@@ -76,6 +109,11 @@ void load_cookie() {
 void save_cookie() {
     // TODO: For Part 1.2, write your file operation code here.
     // Hint: The file path of the cookie is stored in COOKIE_PATH.
+    
+    FILE * fileSession;
+    fileSession = fopen(COOKIE_PATH, "w");
+    fprintf(fileSession, " %d", session_id);
+    fclose(fileSession);
 }
 
 /**
