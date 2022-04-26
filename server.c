@@ -332,14 +332,16 @@ int register_browser(int browser_socket_fd) {
         for (int i = 0; i < NUM_SESSIONS; ++i) {
             if (!session_list[i].in_use) {
                 session_id = i;
+		pthread_mutex_lock(&session_list_mutex);
                 session_list[session_id].in_use = true;
+		pthread_mutex_unlock(&session_list_mutex);
                 break;
             }
         }
     }
     pthread_mutex_lock(&session_list_mutex);
     browser_list[browser_id].session_id = session_id;
-    pthread_mutex_unlock(&session_list_mutex);
+    pthread_mutex_unlock(&browser_list_mutex);
 
     sprintf(message, "%d", session_id);
     send_message(browser_socket_fd, message);
