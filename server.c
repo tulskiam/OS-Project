@@ -73,6 +73,45 @@ void * browser_handler(void* bsf_pointer);
 // and creates handlers for them.
 void start_server(int port);
 
+// Used by hash map to hash key
+int hash(int);
+
+// Generates a random key to use for hashing
+int generate_key();
+
+// Use session_id to get session
+session_t* get_session(int key);
+
+/**
+ * Used by hash map to hash key
+ * @param key
+ * @return a hash of key
+ */
+int hash(int key) {
+    return key % NUM_SESSIONS;
+}
+
+/**
+* Generates a random key to use for hashing
+* @return random key
+*/
+int generate_key() {
+    srand(time(NULL));
+    return rand();
+}
+
+/**
+* Use session_id to get session
+*
+* @param session_id
+* @return a hash of the key
+*/
+session_t* get_session(int session_id) {
+    int h = hash(session_id);
+    assert(h < NUM_SESSIONS);
+    return &session_hash[h];
+}
+
 /**
  * Returns the string format of the given session.
  * There will be always 9 digits in the output string.
@@ -406,8 +445,7 @@ void * browser_handler(void * bsf_pointer) {
         bool data_valid = process_message(session_id, message);
         if (!data_valid) {
             // TODO: For Part 3.1, add code here to send the error message to the browser.
-            //confused
-            //broadcast(session_id, "ERROR");
+            broadcast(session_id, "ERROR");
             continue;
         }
 
