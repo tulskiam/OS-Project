@@ -1,5 +1,17 @@
-#include "net_util.h"
+/*
+ ***************************************************************************
+ * Clarkson University                                                     *
+ * CS 444/544: Operating Systems, Spring 2022                              *
+ * Project: Prototyping a Web Server/Browser                               *
+ * Created by Daqing Hou, dhou@clarkson.edu                                *
+ *            Xinchao Song, xisong@clarkson.edu                            *
+ * March 30, 2022                                                          *
+ * Copyright © 2022 CS 444/544 Instructor Team. All rights reserved.       *
+ * Unauthorized use is strictly prohibited.                                *
+ ***************************************************************************
+ */
 
+#include "net_util.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -35,7 +47,7 @@ void register_server();
 
 // Listens to the server.
 // Keeps receiving and printing the messages from the server.
-void server_listener();
+void *server_listener();
 
 // Starts the browser.
 // Sets up the connection, start the listener thread,
@@ -67,7 +79,27 @@ void read_user_input(char message[]) {
 void load_cookie() {
     // TODO: For Part 1.2, write your file operation code here.
     // Hint: The file path of the cookie is stored in COOKIE_PATH.
-    session_id = -1; // You may move this line to anywhere inside this fucntion.
+    printf("in load cookie");
+    FILE * fileSession;
+    fileSession = fopen(COOKIE_PATH, "r");
+
+    if(fileSession == NULL) {
+        session_id = -1;
+    }
+    else {
+        getc(fileSession); // remove space
+
+        int ret = fscanf(fileSession, "%d", &session_id);
+
+        if(ret == EOF) { 
+            session_id = -1; 
+        }
+        else {
+            fscanf(fileSession, "%d", &session_id);
+        }
+
+        fclose(fileSession);
+    }
 }
 
 /**
@@ -76,6 +108,11 @@ void load_cookie() {
 void save_cookie() {
     // TODO: For Part 1.2, write your file operation code here.
     // Hint: The file path of the cookie is stored in COOKIE_PATH.
+    
+    FILE * fileSession;
+    fileSession = fopen(COOKIE_PATH, "w");
+    fprintf(fileSession, " %d", session_id);
+    fclose(fileSession);
 }
 
 /**
@@ -93,20 +130,23 @@ void register_server() {
 /**
  * Listens to the server; keeps receiving and printing the messages from the server.
  */
-void server_listener() {
+void *server_listener() {
     // TODO: For Part 2.3, uncomment the loop code that was commented out
     //  when you are done with multithreading.
 
-    // while (browser_on) {
+    while (browser_on) {
 
-    char message[BUFFER_LEN];
-    receive_message(server_socket_fd, message);
+        char message[BUFFER_LEN];
+        receive_message(server_socket_fd, message);
 
-    // TODO: For Part 3.1, add code here to print the error message.
+        // TODO: For Part 3.1, add code here to print the error message.
+        if(strncmp(message, "ERROR") == 0) {
+            printf("Invalid input!");
+        } else {
+            puts(message);
+        }
 
-    puts(message);
-
-    //}
+    }
 }
 
 /**
@@ -156,8 +196,10 @@ void start_browser(const char host_ip[], int port) {
         // TODO: For Part 2.3, move server_listener() out of the loop and
         //  creat a thread to run it.
         // Hint: Should we place server_listener() before or after the loop?
-        server_listener();
+	//        server_listener();
     }
+    pthread_t thread_id;
+    pthread_create(&thread_id, NULL, server_listener, NULL);
 
     // Closes the socket.
     close(server_socket_fd);
